@@ -1,4 +1,4 @@
-# Huschauschu Status Bot
+
 
 A Discord monitoring bot (Pycord) that tracks another bot's online status and displays it in a live embed.
 
