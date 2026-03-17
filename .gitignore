@@ -1,0 +1,13 @@
+config.py
+__pycache__/
+*.pyc
+.env/
+logs/
+tmp/
+build/
+dist/
+node_modules/
+venv/
+.idea/
+.vscode/
+# .idea soll nicht auf github hochgeladen werden
