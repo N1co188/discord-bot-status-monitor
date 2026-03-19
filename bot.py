@@ -621,7 +621,11 @@ async def status(
 )
 async def set_embed_channel(
     ctx: discord.ApplicationContext,
-    channel: discord.Option(discord.TextChannel, "Select a channel")
+    channel: discord.Option(
+        discord.abc.GuildChannel, 
+        "Select a channel", 
+        channel_types=[discord.ChannelType.text, discord.ChannelType.news]
+    )
 ):
     global active_embed_channel_id, status_message_id
     if not has_admin_role(ctx.author) and not ctx.author.guild_permissions.administrator:
@@ -643,7 +647,11 @@ async def set_embed_channel(
 )
 async def set_log_channel(
     ctx: discord.ApplicationContext,
-    channel: discord.Option(discord.TextChannel, "Select a channel")
+    channel: discord.Option(
+        discord.abc.GuildChannel, 
+        "Select a channel", 
+        channel_types=[discord.ChannelType.text, discord.ChannelType.news]
+    )
 ):
     global active_log_channel_id
     if not has_admin_role(ctx.author) and not ctx.author.guild_permissions.administrator:
