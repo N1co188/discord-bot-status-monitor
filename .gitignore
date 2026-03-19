@@ -10,4 +10,4 @@ node_modules/
 venv/
 .idea/
 .vscode/
-# .idea soll nicht auf github hochgeladen werden
+

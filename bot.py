@@ -68,10 +68,30 @@ outage_history: list[dict] = []
 # ID of the alert ping message in the embed channel (deleted when back online)
 alert_ping_message_id: int | None = None
 
+# Active channels (loaded from json or fallback to config)
+active_embed_channel_id = STATUS_EMBED_CHANNEL_ID
+active_log_channel_id = STATUS_LOG_CHANNEL_ID
+
 
 # ============================================================
 # PERSISTENCE
 # ============================================================
+
+def update_config_file(key: str, new_value: int) -> None:
+    """Updates a configuration value directly in config.py."""
+    import re
+    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.py")
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        
+        # Replace the line that starts with the key followed by an equals sign
+        content = re.sub(rf"^{key}\s*=\s*\d+", f"{key} = {new_value}", content, flags=re.MULTILINE)
+        
+        with open(config_path, "w", encoding="utf-8") as f:
+            f.write(content)
+    except Exception as e:
+        print(f"[ERROR] Could not update config.py: {e}")
 
 def save_data() -> None:
     """Saves message ID and outage history to a JSON file."""
@@ -135,12 +155,12 @@ def has_admin_role(member: discord.Member) -> bool:
 
 async def send_log_message(embed: discord.Embed, ping: bool = True) -> None:
     """Sends a log message (down/up/maintenance) to the log channel."""
-    channel = bot.get_channel(STATUS_LOG_CHANNEL_ID)
+    channel = bot.get_channel(active_log_channel_id)
     if channel is None:
         try:
-            channel = await bot.fetch_channel(STATUS_LOG_CHANNEL_ID)
+            channel = await bot.fetch_channel(active_log_channel_id)
         except discord.HTTPException:
-            print(f"[WARN] Log channel {STATUS_LOG_CHANNEL_ID} not found.")
+            print(f"[WARN] Log channel {active_log_channel_id} not found.")
             return
     try:
         content = build_ping_string() if ping else None
@@ -153,10 +173,10 @@ async def send_alert_ping() -> None:
     """Sends a role ping in the embed channel while the bot is offline."""
     global alert_ping_message_id
 
-    channel = bot.get_channel(STATUS_EMBED_CHANNEL_ID)
+    channel = bot.get_channel(active_embed_channel_id)
     if channel is None:
         try:
-            channel = await bot.fetch_channel(STATUS_EMBED_CHANNEL_ID)
+            channel = await bot.fetch_channel(active_embed_channel_id)
         except discord.HTTPException:
             return
     try:
@@ -174,10 +194,10 @@ async def delete_alert_ping() -> None:
     if alert_ping_message_id is None:
         return
 
-    channel = bot.get_channel(STATUS_EMBED_CHANNEL_ID)
+    channel = bot.get_channel(active_embed_channel_id)
     if channel is None:
         try:
-            channel = await bot.fetch_channel(STATUS_EMBED_CHANNEL_ID)
+            channel = await bot.fetch_channel(active_embed_channel_id)
         except discord.HTTPException:
             alert_ping_message_id = None
             return
@@ -255,12 +275,12 @@ async def update_live_embed() -> None:
     """Updates the live status embed (or creates a new one)."""
     global status_message_id
 
-    channel = bot.get_channel(STATUS_EMBED_CHANNEL_ID)
+    channel = bot.get_channel(active_embed_channel_id)
     if channel is None:
         try:
-            channel = await bot.fetch_channel(STATUS_EMBED_CHANNEL_ID)
+            channel = await bot.fetch_channel(active_embed_channel_id)
         except discord.HTTPException:
-            print(f"[WARN] Embed channel {STATUS_EMBED_CHANNEL_ID} not found.")
+            print(f"[WARN] Embed channel {active_embed_channel_id} not found.")
             return
 
     embed = build_live_embed()
@@ -303,17 +323,17 @@ async def on_ready():
         except Exception as e:
             print(f"[WARN] Chunk for {guild.name} failed: {e}")
 
-    ec = bot.get_channel(STATUS_EMBED_CHANNEL_ID)
+    ec = bot.get_channel(active_embed_channel_id)
     if ec:
         print(f"[INFO] Embed channel found: {ec.name} ({ec.id})")
     else:
-        print(f"[ERROR] Embed channel {STATUS_EMBED_CHANNEL_ID} NOT found!")
+        print(f"[ERROR] Embed channel {active_embed_channel_id} NOT found!")
 
-    lc = bot.get_channel(STATUS_LOG_CHANNEL_ID)
+    lc = bot.get_channel(active_log_channel_id)
     if lc:
         print(f"[INFO] Log channel found: {lc.name} ({lc.id})")
     else:
-        print(f"[ERROR] Log channel {STATUS_LOG_CHANNEL_ID} NOT found!")
+        print(f"[ERROR] Log channel {active_log_channel_id} NOT found!")
 
     for guild in bot.guilds:
         member = guild.get_member(WATCHED_BOT_ID)
@@ -590,10 +610,50 @@ async def status(
     await bot.change_presence(activity=activity)
 
     await ctx.respond(
-        f":checkmark: Status changed to **{type} {text}**",
+        f"<a:checkmark:1480279615695229111> Status changed to **{type} {text}**",
         ephemeral=True
     )
 
+@bot.slash_command(
+    name="set_embed_channel",
+    description="Set the channel where the live status embed is posted.",
+    guild_ids=[GUILD_ID] if GUILD_ID else None,
+)
+async def set_embed_channel(
+    ctx: discord.ApplicationContext,
+    channel: discord.Option(discord.TextChannel, "Select a channel")
+):
+    global active_embed_channel_id, status_message_id
+    if not has_admin_role(ctx.author) and not ctx.author.guild_permissions.administrator:
+        await ctx.respond("<a:Arlert:1480274858066841842> You don't have permission.", ephemeral=True)
+        return
+
+    active_embed_channel_id = channel.id
+    status_message_id = None  # Reset message ID to create a new one in the new channel
+    update_config_file("STATUS_EMBED_CHANNEL_ID", channel.id)
+    save_data()
+    
+    await ctx.respond(f"<a:checkmark:1480279615695229111> Live status embed channel set to {channel.mention}.", ephemeral=True)
+    await update_live_embed()
+
+@bot.slash_command(
+    name="set_log_channel",
+    description="Set the channel where status changes are logged.",
+    guild_ids=[GUILD_ID] if GUILD_ID else None,
+)
+async def set_log_channel(
+    ctx: discord.ApplicationContext,
+    channel: discord.Option(discord.TextChannel, "Select a channel")
+):
+    global active_log_channel_id
+    if not has_admin_role(ctx.author) and not ctx.author.guild_permissions.administrator:
+        await ctx.respond("<a:Arlert:1480274858066841842> You don't have permission.", ephemeral=True)
+        return
+
+    active_log_channel_id = channel.id
+    update_config_file("STATUS_LOG_CHANNEL_ID", channel.id)
+    
+    await ctx.respond(f"<a:checkmark:1480279615695229111> Log channel set to {channel.mention}.", ephemeral=True)
 
 
 bot.run(BOT_TOKEN)
