@@ -23,6 +23,7 @@ settings.py           # Configuration loading + validation (env vars / .env / co
 storage.py            # Validated, atomic persistence of status_data.json
 stats.py              # Availability statistics and formatting helpers
 config.example.py     # Configuration template
+.env.example          # Environment variable template (for the token)
 requirements.txt      # Python dependencies
 start.sh              # Startup script (creates a virtualenv)
 ```
@@ -48,8 +49,8 @@ pip install -r requirements.txt
 3. Create your configuration:
 
 - Copy `config.example.py` to `config.py` and fill in your IDs
-- Recommended: create a file named `.env` next to `bot.py` containing
-  `DISCORD_BOT_TOKEN=your-token` – this keeps the token out of source files
+- Copy `.env.example` to `.env` and put your token in `DISCORD_BOT_TOKEN`
+  (recommended – keeps the token out of source files)
 
 Every setting can be provided as an environment variable, in `.env` or in `config.py`
 (environment variables take precedence). Lists are comma-separated in env vars.
