@@ -25,9 +25,7 @@ stats.py              # Availability statistics and formatting helpers
 config.example.py     # Configuration template
 .env.example          # Environment variable template (for the token)
 requirements.txt      # Python dependencies
-requirements-dev.txt  # Test dependencies
 start.sh              # Startup script (creates a virtualenv)
-tests/                # Unit tests (pytest)
 ```
 
 ## Requirements
@@ -146,13 +144,6 @@ To hide the staff commands from regular members in the command picker, restrict 
   validated on load, and a corrupt file is backed up instead of crashing the bot.
 - **Least privilege:** only the `guilds`, `members` and `presences` gateway intents are requested.
 - **No information leaks:** unexpected errors are logged in full but users only see a generic message.
-
-## Development
-
-```bash
-pip install -r requirements-dev.txt
-python -m pytest
-```
 
 ## Dependencies
 

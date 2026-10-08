@@ -2,7 +2,6 @@
 config.py
 .env
 *.env
-!.env.example
 
 # Runtime data
 status_data.json
@@ -14,7 +13,6 @@ logs/
 # Python
 __pycache__/
 *.pyc
-.pytest_cache/
 venv/
 .venv/
 
