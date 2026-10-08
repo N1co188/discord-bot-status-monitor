@@ -1,13 +1,27 @@
+# Secrets
 config.py
+.env
+*.env
+!.env.example
+
+# Runtime data
+status_data.json
+status_data.json.corrupt-*
+.status_data.json.*.tmp
+logs/
+*.log
+
+# Python
 __pycache__/
 *.pyc
-.env/
-logs/
+.pytest_cache/
+venv/
+.venv/
+
+# Misc
 tmp/
 build/
 dist/
 node_modules/
-venv/
 .idea/
 .vscode/
-

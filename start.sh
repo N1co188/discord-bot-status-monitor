@@ -1,7 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Install dependencies
-pip install -r requirements.txt
+cd "$(dirname "$0")"
 
-# Start the bot
-python bot.py
+# Isolated virtual environment instead of installing into the system Python
+if [ ! -d venv ]; then
+    python3 -m venv venv
+fi
+
+# shellcheck disable=SC1091
+source venv/bin/activate
+
+pip install --disable-pip-version-check -q -r requirements.txt
+
+# Keep secrets and runtime data private to the current user
+umask 077
+
+exec python bot.py

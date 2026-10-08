@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Run tests
+        run: python -m pytest -q
+      - name: Import check (registers all slash commands)
+        env:
+          DISCORD_BOT_TOKEN: ci.dummy.token
+          WATCHED_BOT_ID: "1"
+          GUILD_ID: "2"
+          STATUS_EMBED_CHANNEL_ID: "3"
+          STATUS_LOG_CHANNEL_ID: "4"
+          LOG_FILE: none
+        run: python -c "import bot; print(len(bot.bot.pending_application_commands), 'commands registered')"
