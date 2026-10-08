@@ -23,11 +23,8 @@ settings.py           # Configuration loading + validation (env vars / .env / co
 storage.py            # Validated, atomic persistence of status_data.json
 stats.py              # Availability statistics and formatting helpers
 config.example.py     # Configuration template
-.env.example          # Environment variable template (for the token)
 requirements.txt      # Python dependencies
-requirements-dev.txt  # Test dependencies
 start.sh              # Startup script (creates a virtualenv)
-tests/                # Unit tests (pytest)
 ```
 
 ## Requirements
@@ -51,8 +48,8 @@ pip install -r requirements.txt
 3. Create your configuration:
 
 - Copy `config.example.py` to `config.py` and fill in your IDs
-- Copy `.env.example` to `.env` and put your token in `DISCORD_BOT_TOKEN`
-  (recommended – keeps the token out of source files)
+- Recommended: create a file named `.env` next to `bot.py` containing
+  `DISCORD_BOT_TOKEN=your-token` – this keeps the token out of source files
 
 Every setting can be provided as an environment variable, in `.env` or in `config.py`
 (environment variables take precedence). Lists are comma-separated in env vars.
@@ -146,13 +143,6 @@ To hide the staff commands from regular members in the command picker, restrict 
   validated on load, and a corrupt file is backed up instead of crashing the bot.
 - **Least privilege:** only the `guilds`, `members` and `presences` gateway intents are requested.
 - **No information leaks:** unexpected errors are logged in full but users only see a generic message.
-
-## Development
-
-```bash
-pip install -r requirements-dev.txt
-python -m pytest
-```
 
 ## Dependencies
 
